@@ -1,0 +1,189 @@
+conda activate qiime2-2020.8
+
+----------------------------------------------------------------------------
+source activate qiime2-2020.8
+
+cd Desktop/Patras_Lab/Combined\ Mouse\ vaginal\ microbiome\ and\ HMO-GBS\ study/
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  "MERGING FOR BASELINE"
+
+"GET TAXONOMY TO ADD TO UPCOMING BIOM"
+mkdir HMO_GBS_CST/Output
+
+qiime feature-table merge-seqs \
+--i-data Other_studies/rep-seqs_1.qza \
+--i-data Other_studies/rep-seqs_2.qza \
+--i-data Other_studies/rep-seqs_3.qza \
+--i-data rep-seqs_GBSPBS.qza \
+--i-data ControlStudy/rep-seqs_controlstud.qza \
+--o-merged-data HMO_GBS_CST/Output/combinedstudy_rep_seqs_baseline.qza
+#Saved FeatureData[Sequence] to: combinedstudy_rep_seqs.qza
+
+qiime feature-classifier classify-sklearn \
+--i-classifier gg-13-8-99-aug2020_classifier.qza \
+--i-reads HMO_GBS_CST/Output/combinedstudy_rep_seqs_baseline.qza \
+--o-classification HMO_GBS_CST/Output/combinedstudy_taxonomy.qza
+#Saved FeatureData[Taxonomy] to: Output/combinedstudy_taxonomy.qza
+
+qiime tools export \
+--input-path HMO_GBS_CST/Output/combinedstudy_taxonomy.qza \
+--output-path HMO_GBS_CST/combinedstudy_taxonomy
+#Exported Output/combinedstudy_taxonomy.qza as TSVTaxonomyDirectoryFormat to directory exported/combinedstudy_taxonomy
+
+#merging all three studies
+qiime feature-table merge \
+--i-tables Other_studies/final_filtered_feature-table_3.qza \
+--i-tables Other_studies/id-filtered_feature-table_1.qza \
+--i-tables Other_studies/id-filtered_feature-table_2.qza \
+--i-tables Output/feature_table_GBSPBS.qza \
+--i-tables ControlStudy/table_controlstud.qza \
+--o-merged-table HMO_GBS_CST/Output/combinedstudy_feattable
+#Saved FeatureTable[Frequency] to: Output/combinedstudy_feattable.qza
+
+qiime taxa filter-table \
+--i-table HMO_GBS_CST/Output/combinedstudy_feattable.qza \
+--i-taxonomy HMO_GBS_CST/Output/combinedstudy_taxonomy.qza \
+--p-mode contains \
+--p-exclude "k__Bacteria; p__Proteobacteria; c__Gammaproteobacteria; o__Pseudomonadales; f__Pseudomonadaceae; g__Pseudomonas; s__veronii" \
+--o-filtered-table HMO_GBS_CST/Output/filt1_combinedstudy_feattable.qza
+
+qiime taxa filter-table \
+--i-table HMO_GBS_CST/Output/filt1_combinedstudy_feattable.qza \
+--i-taxonomy HMO_GBS_CST/Output/combinedstudy_taxonomy.qza \
+--p-mode contains \
+--p-exclude "o__Streptophyta" \
+--o-filtered-table HMO_GBS_CST/Output/filt2_combinedstudy_feattable.qza
+  
+qiime taxa filter-table \
+--i-table HMO_GBS_CST/Output/filt2_combinedstudy_feattable.qza \
+--i-taxonomy HMO_GBS_CST/Output/combinedstudy_taxonomy.qza \
+--p-mode contains \
+--p-exclude "g__Geobacillus" \
+--o-filtered-table HMO_GBS_CST/Output/filt3_combinedstudy_feattable.qza
+
+---------
+"ALL MERGED"
+#filtering all merged studies with final desired samples to keep, vizualized with the completed metadata file
+qiime feature-table filter-samples \
+--i-table HMO_GBS_CST/Output/filt3_combinedstudy_feattable.qza \
+--m-metadata-file samples-to-keep_allMERGED.txt \
+--o-filtered-table HMO_GBS_CST/Output/feattable_allMERGED.qza
+
+#sample_metadata must be tab delimited txt
+qiime feature-table summarize \
+--i-table HMO_GBS_CST/Output/feattable_allMERGED.qza \
+--o-visualization HMO_GBS_CST/Output/feattable_allMERGED.qzv \
+--m-sample-metadata-file sample_metadata_allMERGED.txt
+#Saved Visualization to: Visualization/combinedstudy_filtered_feature-table.qzv
+
+qiime feature-table rarefy \
+--i-table HMO_GBS_CST/Output/feattable_allMERGED.qza \
+--p-sampling-depth 1900 \
+--o-rarefied-table HMO_GBS_CST/Rarefied_1900_allMERGED
+
+qiime tools export \
+--input-path HMO_GBS_CST/Rarefied_1900_allMERGED.qza \
+--output-path HMO_GBS_CST/exported/Rarefied_allMERGED
+#Exported combinedstudy_filtered_feature-table.qza as BIOMV210DirFmt to directory exported/combined_filt_feature-table
+
+#change directory to HMO_GBS_CST/exported/cRarefied_allMERGED
+biom convert -i HMO_GBS_CST/exported/Rarefied_allMERGED/feature-table.biom -o HMO_GBS_CST/exported/Rarefied_allMERGED/OTU_1900_table_allMERGED.txt --to-tsv --header-key taxonomy
+#added taxonomy in txt and am converting back
+#headers have to be the same name to filter accurately
+biom convert -i HMO_GBS_CST/exported/Rarefied_allMERGED/OTU_1900_table_allMERGED.txt -o HMO_GBS_CST/exported/Rarefied_allMERGED/taxa_table_allMERGED_json.biom --table-type="OTU table" --to-json --process-obs-metadata taxonomy
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+"Baseline"
+
+qiime feature-table filter-samples \
+--i-table HMO_GBS_CST/Output/filt3_combinedstudy_feattable.qza \
+--m-metadata-file samples-to-keep_Baseline.txt \
+--o-filtered-table HMO_GBS_CST/Output/feattable_Baseline.qza
+
+#sample_metadata must be tab delimited txt
+qiime feature-table summarize \
+--i-table HMO_GBS_CST/Output/feattable_Baseline.qza \
+--o-visualization HMO_GBS_CST/Output/feattable_Baseline.qzv \
+--m-sample-metadata-file sample_metadata_Baseline.txt
+#Saved Visualization to: Visualization/combinedstudy_filtered_feature-table.qzv
+
+qiime feature-table rarefy \
+--i-table HMO_GBS_CST/Output/feattable_Baseline.qza \
+--p-sampling-depth 1900 \
+--o-rarefied-table HMO_GBS_CST/Rarefied_1900_Baseline
+
+qiime tools export \
+--input-path HMO_GBS_CST/Rarefied_1900_Baseline.qza \
+--output-path HMO_GBS_CST/exported/Rarefied_Baseline
+#Exported combinedstudy_filtered_feature-table.qza as BIOMV210DirFmt to directory exported/combined_filt_feature-table
+
+#change directory to HMO_GBS_CST/exported/cRarefied_allMERGED
+biom convert -i HMO_GBS_CST/exported/Rarefied_Baseline/feature-table.biom -o HMO_GBS_CST/exported/Rarefied_Baseline/OTU_1900_table_Baseline.txt --to-tsv --header-key taxonomy
+#added taxonomy in txt and am converting back
+#headers have to be the same name to filter accurately
+biom convert -i HMO_GBS_CST/exported/Rarefied_Baseline/OTU_1900_table_Baseline.txt -o HMO_GBS_CST/exported/Rarefied_Baseline/taxa_table_Baseline_json.biom --table-type="OTU table" --to-json --process-obs-metadata taxonomy
+
+qiime taxa barplot \
+--i-table HMO_GBS_CST/Rarefied_1900_Baseline.qza \
+--i-taxonomy HMO_GBS_CST/Output/combinedstudy_taxonomy.qza \
+--m-metadata-file sample_metadata_Baseline.txt \
+--o-visualization HMO_GBS_CST/Barplot_1900_Baseline.qzv
+
+qiime feature-table relative-frequency \
+--i-table HMO_GBS_CST/Rarefied_1900_Baseline.qza \
+--o-relative-frequency-table HMO_GBS_CST/RelFreq_1900_Baseline.qza
+
+qiime tools export \
+--input-path HMO_GBS_CST/RelFreq_1900_Baseline.qza \
+--output-path HMO_GBS_CST/exported/RelFreq_1900_Baseline
+
+biom convert -i HMO_GBS_CST/exported/RelFreq_1900_Baseline/feature-table.biom -o HMO_GBS_CST/exported/RelFreq_1900_Baseline/RelFreq_Baseline.txt --to-tsv --header-key taxonomy
+biom convert -i HMO_GBS_CST/exported/RelFreq_1900_Baseline/RelFreq_Baseline.txt -o HMO_GBS_CST/exported/RelFreq_1900_Baseline/RelFreq_Baseline_json.biom --table-type="OTU table" --to-json --process-obs-metadata taxonomy
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  "GBS studies"
+#filtering all merged studies with final desired samples to keep, vizualized with the completed metadata file
+qiime feature-table filter-samples \
+--i-table HMO_GBS_CST/Output/filt3_combinedstudy_feattable.qza \
+--m-metadata-file samples-to-keep_GBSstudy.txt \
+--o-filtered-table HMO_GBS_CST/Output/feattable_GBSstudy.qza
+
+#sample_metadata must be tab delimited txt
+qiime feature-table summarize \
+--i-table HMO_GBS_CST/Output/feattable_GBSstudy.qza \
+--o-visualization HMO_GBS_CST/Output/feattable_GBSstudy.qzv \
+--m-sample-metadata-file sample_metadata_allMERGED.txt
+#Saved Visualization to: Visualization/combinedstudy_filtered_feature-table.qzv
+
+qiime feature-table rarefy \
+--i-table HMO_GBS_CST/Output/feattable_GBSstudy.qza \
+--p-sampling-depth 1900 \
+--o-rarefied-table HMO_GBS_CST/Rarefied_1900_GBSstudy
+
+qiime tools export \
+--input-path HMO_GBS_CST/Rarefied_1900_GBSstudy.qza \
+--output-path HMO_GBS_CST/exported/Rarefied_GBSstudy
+#Exported combinedstudy_filtered_feature-table.qza as BIOMV210DirFmt to directory exported/combined_filt_feature-table
+
+#change directory to HMO_GBS_CST/exported/cRarefied_allMERGED
+biom convert -i HMO_GBS_CST/exported/Rarefied_GBSstudy/feature-table.biom -o HMO_GBS_CST/exported/Rarefied_GBSstudy/OTU_1900_table_GBSstudy.txt --to-tsv --header-key taxonomy
+#added taxonomy in txt and am converting back
+#headers have to be the same name to filter accurately
+biom convert -i HMO_GBS_CST/exported/Rarefied_GBSstudy/OTU_1900_table_GBSstudy.txt -o HMO_GBS_CST/exported/Rarefied_GBSstudy/taxa_table_GBSstudy_json.biom --table-type="OTU table" --to-json --process-obs-metadata taxonomy
+
+qiime taxa barplot \
+--i-table HMO_GBS_CST/Rarefied_1900_GBSstudy.qza \
+--i-taxonomy HMO_GBS_CST/Output/combinedstudy_taxonomy.qza \
+--m-metadata-file sample_metadata_GBSstudy.txt \
+--o-visualization HMO_GBS_CST/Barplot_1900_GBSstudy.qzv
+
+qiime feature-table relative-frequency \
+--i-table HMO_GBS_CST/Rarefied_1900_GBSstudy.qza \
+--o-relative-frequency-table HMO_GBS_CST/RelFreq_1900_GBSstudy.qza
+
+qiime tools export \
+--input-path HMO_GBS_CST/RelFreq_1900_GBSstudy.qza \
+--output-path HMO_GBS_CST/exported/RelFreq_1900_GBSstudy
+
+biom convert -i HMO_GBS_CST/exported/RelFreq_1900_GBSstudy/feature-table.biom -o HMO_GBS_CST/exported/RelFreq_1900_GBSstudy/RelFreq_GBSstudy.txt --to-tsv --header-key taxonomy
+biom convert -i HMO_GBS_CST/exported/RelFreq_1900_GBSstudy/RelFreq_GBSstudy.txt -o HMO_GBS_CST/exported/RelFreq_1900_GBSstudy/RelFreq_GBSstudy_json.biom --table-type="OTU table" --to-json --process-obs-metadata taxonomy
