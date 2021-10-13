@@ -69,7 +69,7 @@ plt.savefig('CST_Stability_boxplots.svg', dpi= 1000, bbox_inches='tight', pad_in
             
             
 ##Starting with First Distances
-CSTmetaBCfirst= pd.read_csv('Desktop/Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST/exported/GBS_BC_FirstDistances/FirstDifferences_withmeta.csv',index_col=0)
+CSTmetaBCfirst_extra= pd.read_csv('Desktop/Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST/exported/GBS_BC_FirstDistances_0/FirstDifferences_meta_extra.csv',index_col=0)
             
 #since character strings are not numbers, their order changes. Use the key below to assign color to treatment condition
 trxn=["#466566","#ecebe2","#09496c","#9fc3cc"]
