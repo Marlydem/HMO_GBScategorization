@@ -1,0 +1,112 @@
+#The following is done in Seaborn
+
+
+# Pandas for managing datasets
+import pandas as pd
+
+# Matplotlib for additional customization
+from matplotlib import pyplot as plt
+%matplotlib inline
+
+# Seaborn for plotting and styling
+import seaborn as sns
+
+
+sns.set_style('whitegrid')
+
+CSTmeta= pd.read_csv('Desktop/Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST/CST_metadata_GBSstudy.csv',index_col=0)
+CSTmap= pd.read_csv('Desktop/Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST/CST_GBSstudy_mapping.csv',index_col=0)
+
+#view file
+CSTmeta
+
+#remove samples that only have one timepoint
+CSTmeta = CSTmeta[~CSTmeta['host_subject_id'].isin(['P15', 'P05','P03','C4'])]
+
+
+#assign colors to CST
+CSTcol= ['tomato', 'orange', 'lightseagreen', 'royalblue', 'yellow','#c51b8a']
+custom_palette= sns.set_palette(sns.color_palette(CSTcol))
+
+sns.palplot(CSTcol, size=0.5)
+
+
+
+
+# Make the PairGrid for CST transitions
+g = sns.PairGrid(CSTmeta.sort_values("mouse", ascending=False),
+                 x_vars=["timepoint"], y_vars=["mouse"],
+                 height=18, aspect=.25)
+
+# Draw a dot plot using the stripplot function
+g.map(sns.stripplot, size=10, orient="h", data= CSTmeta, hue="oCST",
+      palette=CSTcol, linewidth=1, edgecolor="w", jitter=False)
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0., frameon=False, title="mCST")
+
+
+# Use the same x axis limits on all columns and add better labels
+g.set(xlim=(-0.5, 6.5), xlabel="Timepoint", ylabel="Sample")
+
+# Use semantically meaningful titles for the columns
+titles = ["CST over time"]
+
+for ax, title in zip(g.axes.flat, titles):
+
+    # Set a different title for each axes
+    ax.set(title=title)
+
+    # Make the grid horizontal instead of vertical
+    ax.xaxis.grid(False)
+    ax.yaxis.grid(True)
+
+sns.despine(left=True, bottom=True)
+
+plt.savefig('CST_Stability_boxplots.png', dpi= 1000, bbox_inches='tight', pad_inches=0.5, 
+            orientation='portrait', format = 'png')
+plt.savefig('CST_Stability_boxplots.svg', dpi= 1000, bbox_inches='tight', pad_inches=0.5, 
+            orientation='portrait', format = 'svg')
+            
+            
+            
+##Starting with First Distances
+CSTmetaBCfirst= pd.read_csv('Desktop/Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST/exported/GBS_BC_FirstDistances/FirstDifferences_withmeta.csv',index_col=0)
+            
+#since character strings are not numbers, their order changes. Use the key below to assign color to treatment condition
+trxn=["#466566","#ecebe2","#09496c","#9fc3cc"]
+# Control: #ecebe2
+# Control_GBS: #9fc3cc
+#pHMO: #466566
+#pHMO_GBS: #09496c
+
+# Make the graph for Bray-Curtis First Distances
+g = sns.PairGrid(CSTmetaBCfirst_extra.sort_values("mouse", ascending=True),
+                 x_vars=["Distance"], y_vars=["mouse"],
+                 height=18, aspect=.25)
+
+# Plot the orbital period with horizontal boxes
+sns.boxplot(x="Distance_extra", y="mouse", data=CSTmetaBCfirst_extra, hue= "treatment",
+            whis=[0, 100], width=0.6, dodge=False, palette=trxn)
+plt.legend(bbox_to_anchor=(1.05, 1), frameon=False, handlelength=0.75, loc=2, borderaxespad=1, title= "Treatment", labels=["Control","Control_GBS","pHMO","pHMO_GBS"])
+
+# Use semantically meaningful titles for the columns
+titles = ["Stability"]
+
+for ax, title in zip(g.axes.flat, titles):
+
+    # Set a different title for each axes
+    ax.set(title=title)
+    
+#Add in points to show each observation
+sns.stripplot(x="Distance_extra", y="mouse", data=CSTmetaBCfirst_extra,
+              size=4, color=".1", jitter=False, linewidth=0)
+
+# Tweak the visual presentation
+ax.set(ylabel="")
+sns.despine(trim=True, left=True)
+
+plt.savefig('CST_Stability_boxplots_extra_ind.png', dpi= 500, bbox_inches='tight', pad_inches=0.5, 
+            orientation='portrait', format = 'png')
+plt.savefig('CST_Stability_boxplots_extra_ind.svg', dpi= 500, bbox_inches='tight', pad_inches=0.5, 
+            orientation='portrait', format = 'svg')
+            
+            
