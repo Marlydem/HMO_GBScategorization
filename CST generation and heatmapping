@@ -14,8 +14,6 @@ library(ggplot2)
 setwd("~/Desktop")
 
 
-
-
 %%%%%%%%%%%%%%%%%%% on Baseline dataset %%%%%%%%%%%%%%%%%%%
 
 OTU_1900_Baseline <- read.csv("Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST/exported/RelFreq_1900_Baseline/RelFreq_taxahead_Baseline.csv", header=TRUE, sep = ",", row.names="sample_name")
@@ -79,6 +77,7 @@ print(most_abundant_taxa30BL)
 write.csv(most_abundant_taxa25BL,"top30BL_taxa.csv")
 
 #Use this to see what indices I need to remove or combine into "other" in the rarefied taxahead dataset
+#increased top taxa so that clustering would match the original calls
 
 %%Rename the CST values accordingly%%
   # CST I: Staphylococcus
@@ -87,7 +86,6 @@ write.csv(most_abundant_taxa25BL,"top30BL_taxa.csv")
   #CST IV: Lactobacillus
   #CST V: High alpha diversity, heterogenous bacteria
   #CST VI: GBS
-  
 
   #First changed to CST and then back to numeric
 
@@ -98,8 +96,6 @@ OTU_BLre_ordername <- read.csv("exported/RelFreq_1900_Baseline/RelFreq_toptaxahe
 install.packages("RColorBrewer")
 library("RColorBrewer")
 library("grDevices")
-install.packages("plasma")
-library("plasma")
 
 OTU_reno_clustBL_matrix <- as.matrix(OTU_BLre_ordername)
 heatmap(OTU_reno_clustBL_matrix) #sideways without CST categorization
@@ -107,32 +103,25 @@ heatmap(OTU_reno_clustBL_matrix) #sideways without CST categorization
 #will use mapping and shortened df (Other)
 #the all-encompassing code!!!!!!!!
 #tochangeCST in Excel =IF(B2=1,"I",IF(B2=2,"V",IF(B2=3,"III",IF(B2=4,"II",IF(B2=5,"IV",FALSE)))))
-      # mycol_BL <- c("tomato","orange","lightseagreen","royalblue","yellow","#c51b8a")
-      # colSideBLx <- mycol[my_groupBL]
-      # my_groupBLre <- as.numeric(as.factor(substr(CST_BLmetadata$CSTrenum,1,1)))
-      # colSideBLre <- mycolre[my_groupBLre]
+colMainGBS <- colorRampPalette(brewer.pal(9, "BuPu"))(25)
 
 my_group_BL <- as.numeric(as.factor(substr(CST_BLmapping$x,1,1)))
 mycol <- c("tomato","yellow","lightseagreen","orange","royalblue","#c51b8a")
 colSide_BL <- mycol[my_group_BL]
 
-heatmap(OTU_reno_clustBL_matrix, cexCol = 0.8, RowSideColors=colSide_BL, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"), Rowv=CST_BLmetadata$CSTrom)
-
-
-#alltaxa
-OTU_1900matrix <- as.matrix(OTU_1900_Baseline)
-heatmap(OTU_1900matrix, RowSideColors=colSideBL3, cexCol= 0.8, scale='none', Colv= most_abundant_taxa20BL, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 
 
 OTU_BL_top35ordername <- read.csv("exported/RelFreq_1900_Baseline/RelFreq_top35taxahead_Baseline.csv", header=TRUE, sep = ",", row.names="sample_name")
 OTU_BL_top35matrix <- as.matrix(OTU_BL_top35ordername)
-heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 
-# circlize heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"), heatmap_legend_param = list(title = "Abundance", at = c(0,0.5,1), labels = c("0", "0.5", "1")), top_annotation = HeatmapAnnotation(CST = c(1,2,3,4,5), annotation_legend_param = list(CST = list(title = "CST"))))
 
-#also saved png
-tiff(file="Heatmap_Baseline.tif")
-heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+#saving files. preferred to save PDF and export as png 1500 pixels per inche
+tiff(file="Heatmap_Baseline_BuPu.tif")
+heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL,  col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+dev.off()
+png(file="Heatmap_Baseline_BuPu.png")
+heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL,  col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 dev.off()
 
 %%%%%%%%%%%%%%% on GBS dataset %%%%%%%%%%%%%%%
@@ -158,7 +147,6 @@ for (i in 2:15) wssGBSst16[i] <- sum(kmeans(OTU_1900_GBSstudy,
 #the above two lines didn't work, so skipped and we decided on 6 groups anyways...
 plot(1:15, wssGBSst16, type="b", xlab="Number of Clusters",
      ylab="Within groups sum of squares")
-fviz_nbclust(OTU_1900_GBSstudy, FUNcluster = kmeans)
 
 #Return to main code
 group3GBSst16 <- cutree(fitGBSst16, k=3)
@@ -176,31 +164,25 @@ rect.hclust(fitGBSst16, k=4, border="red")
 rect.hclust(fitGBSst16, k=5, border="green")
 rect.hclust(fitGBSst16, k=6, border="Blue")
 
-fitplot6GBSst16 <- kmeans(OTU_1900_GBSstudy, 6) # 6 cluster solution
-fviz_cluster(fitplot6GBSst16, OTU_1900_GBSstudy) #view PCA
-
-distanceGBS <- get_dist(OTU_1900_GBSstudy)
-fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
-
-
 print(group6GBSst16)   
-write.csv(group6GBSst16,"CST_GBSst16_mappingPAPER.csv")
+write.csv(group6GBSst16,"CST_GBSstudy_mapping.csv")
 #merge the two tables- OTU_1900_Combined and CST_CB_mapping.csv ,- read in as such
 #Manually add first column heading "Sample_id"
-CST_CBmapping <- read.csv("CST_GBSst16_mappingPAPER.csv", header=TRUE, sep = ",", row.names="Sample_id")
+CST_GBSstudy_mapping <- read.csv("CST_GBSstudy_mapping.csv", header=TRUE, sep = ",", row.names="sample_name")
+CST_GBSstudy_metadata <- read.csv("CST_metadata_GBSstudy.csv", header=TRUE, sep = ",", row.names="sample_name")
 
 topN = 15
-OTU_1900_comb_GBSst16T <- t(OTU_1900_Combined_study16)
-OTU_1900_comb_GBSst16Ttaxa <- otu_table(OTU_1900_comb_GBSst16T, taxa_are_rows = TRUE)
-most_abundant_taxaCBst16 = sort(taxa_sums(OTU_1900_comb_GBSst16Ttaxa), TRUE)[1:topN]
-print(most_abundant_taxaCBstudy16)
-write.csv(most_abundant_taxaCB,"top15CBs16_taxa.csv")
+OTU_1900_GBSstudyT <- t(OTU_1900_GBSstudy)
+OTU_1900_GBSstudy_taxa <- otu_table(OTU_1900_GBSstudyT, taxa_are_rows = TRUE)
+most_abundant_taxaGBSstudy = sort(taxa_sums(OTU_1900_GBSstudy_taxa), TRUE)[1:topN]
+print(most_abundant_taxaGBSstudy)
+write.csv(most_abundant_taxaGBSstudy,"top15GBSst_taxa.csv")
 
-most_abundant_taxa20CBst16 = sort(taxa_sums(OTU_1900_comb_GBSst16Ttaxa), TRUE)[1:20]
-print(most_abundant_taxa20CBst16)
-write.csv(most_abundant_taxa20CBst16,"top20CB_taxa.csv")
+most_abundant_taxa20GBSst = sort(taxa_sums(OTU_1900_GBSstudy_taxa), TRUE)[1:20]
+print(most_abundant_taxa20GBSst)
+write.csv(most_abundant_taxa20GBSst,"top20GGBSst_taxa.csv")
 
-OTU_1900_comb_GBSst16_Other <- read.csv("RE_Rarefied_1900_filtrelfreq_combined/RE_OTU_1900_TaxaHeadCombined_consolidatedOTHER_study16PAPER.csv", header=TRUE, sep = ",", row.names="Sample_id")
+OTU_GBSre_ordername <- read.csv("exported/RelFreq_1900_GBSstudy/RelFreq_top24taxahead_GBSstudy.csv", header=TRUE, sep = ",", row.names="sample_name")
 
 #Use this to see what indices I need to remove or combine into "other"
 
@@ -212,135 +194,42 @@ OTU_1900_comb_GBSst16_Other <- read.csv("RE_Rarefied_1900_filtrelfreq_combined/R
   #CST V: High alpha diversity, heterogenous bacteria
   #CST VI: GBSst16
   
-  %%HEATMAP%%
-  
-  OTU_clustCB_matrix <- as.matrix(OTU_1900_comb_GBSst16_Other)
-heatmap(OTU_clustCB_matrix) #sideways without CST categorization
-
-#will use mapping (CST_CBmapping) and shortened df (OTU_1900_comb_GBSst16_Other)
-#the all-encompassing code!!!!!!!!
-my_groupGBSst16 <- as.numeric(as.factor(substr(CST_CBmapping$x,1,1)))
-colSideGBSst16 <- brewer.pal(12, "Set3")[my_groupGBSst16]
-colMainGBSst16 <- colorRampPalette(brewer.pal(8, "Reds"))(25)
-heatmap(OTU_clustCB_matrix, RowSideColors=colSideGBSst16, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"), Rowv= CST_CBmapping$CST_x)
-
-
-my_groupTRXst16 <- as.numeric(as.factor(substr(CST_CBmapping$trx,1,1)))
-colSideTRXst16 <- brewer.pal(4, "Set1")[my_groupTRXst16]
-
-heatmap(OTU_clustCB_matrix, RowSideColors=colSideGBSst16, , Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"), Rowv= CST_CBmapping$x)
-heatmap(OTU_clustCB_matrix, RowSideColors=colSideTRXst16, cexCol = 0.8, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"), reorderfun = function(d, w) reorder(d, w))
-
-
-
-
-
-
-##############################################
-
-%%GBS and previous datasets%%
- setwd("~/Desktop") 
-OTU_1900_combined <- read.csv("Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST/exported/allMERGED", header=TRUE, sep = ",", row.names="sample_name")
-meta_BL <- read.csv("Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/allMERGED.csv")
-
-setwd("~/Desktop/Patras_Lab/Combined Mouse vaginal microbiome and HMO-GBS study/HMO_GBS_CST")
-
-dGBS <- dist(OTU_1900_Combined, method= "euclidean")
-fitGBS <- hclust(dGBS, method="ward.D")
-quartz()
-plot(fitGBS)
-
-# Determine number of clusters
-wssGBS <- (nrow(OTU_1900_Combined-1)*sum(apply(OTU_1900_Combined,2,var)))
-for (i in 2:15) wssGBS[i] <- sum(kmeans(OTU_1900_Combined,
-                                        centers=i)$withinss)
-#the above two lines didn't work, so skipped and we decided on 6 groups anyways...
-plot(1:15, wssGBS, type="b", xlab="Number of Clusters",
-     ylab="Within groups sum of squares")
-fviz_nbclust(OTU_1900_Combined, FUNcluster = kmeans)
-
-#Return to main code
-group3GBS <- cutree(fitGBS, k=3)
-group4GBS <- cutree(fitGBS, k=4)
-group5GBS <- cutree(fitGBS, k=5)
-group6GBS <- cutree(fitGBS, k=6)
-table(group3GBS) # Number of members in each cluster
-table(group4GBS)
-table(group5GBS)
-table(group6GBS)
-
-plot(fitGBS)
-rect.hclust(fitGBS, k=4, border="red")
-rect.hclust(fitGBS, k=5, border="green")
-rect.hclust(fitGBS, k=3, border="yellow")
-rect.hclust(fitGBS, k=6, border="Blue")
-
-fitplot6GBS <- kmeans(OTU_1900_Combined, 6) # 6 cluster solution
-fviz_cluster(fitplot6GBS, OTU_1900_Combined) #view PCA
-
-distance <- get_dist(OTU_1900_Combined)
-fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
-
-
-print(group6GBS)   
-write.csv(group6GBS,"CST_CB_mapping.csv")
-#merge the two tables- OTU_1900_Combined and CST_CB_mapping.csv ,- read in as such
-#Manually add first column heading "Sample_id"
-CST_CBmapping <- read.csv("CST_CB_mapping.csv", header=TRUE, sep = ",", row.names="Sample_id")
-
-
-topN = 15
-OTU_1900_CombinedT <- t(OTU_1900_Combined)
-OTU_1900_CombinedTtaxa <- otu_table(OTU_1900_CombinedT, taxa_are_rows = TRUE)
-most_abundant_taxaCB = sort(taxa_sums(OTU_1900_CombinedTtaxa), TRUE)[1:topN]
-print(most_abundant_taxaCB)
-write.csv(most_abundant_taxaCB,"top15CB_taxa.csv")
-
-most_abundant_taxa20CB = sort(taxa_sums(OTU_1900_CombinedTtaxa), TRUE)[1:20]
-print(most_abundant_taxa20CB)
-write.csv(most_abundant_taxa20CB,"top20CB_taxa.csv")
-
-OTU_1900_Combined_Other <- read.csv("RE_Rarefied_1900_filtrelfreq_Combined/RE_OTU_1900_TaxaHead_OtherConsolidated.csv", header=TRUE, sep = ",", row.names="Sample_id")
-CST_CBmapping_mult <- read.csv("CST_CB_mapping_mult.csv", header=TRUE, sep = ",", row.names="Sample_id")
-
-#Use this to see what indices I need to remove or combine into "other"
-
-%%Rename the CST values accordingly%%
-  # CST I: Staphylococcus
-  # CST II: Staph-Enterococcus
-  # CST III: Enterococcus
-  #CST IV: Lactobacillus
-  #CST V: High alpha diversity, heterogenous bacteria
-  #CST VI: GBS
-  
-  
-  #OTU_CBre_ordername['fitplot5.cluster'] <- OTU_CBre_ordername['fitplot5.cluster'].replace(['2','1','5','4','3'],['CST I','CST II','CST III','CST IV', 'CST V', 'CST VI'])
-  #doesn't work, just manually adjusted and re-read
-  #First changed to CST and then back to numeric
-
-
 %%HEATMAP%%
   
-  install.packages("RColorBrewer")
-library("RColorBrewer")
+OTU_clustGBS_matrix <- as.matrix(OTU_GBSre_ordername)
 
-OTU_clustCB_matrix <- as.matrix(OTU_1900_Combined_Other)
-heatmap(OTU_clustCB_matrix) #sideways without CST categorization
+#for CST
+my_group_GBS <- as.numeric(as.factor(substr(CST_GBSstudy_mapping$x,1,1)))
+mycolGBS <- c("tomato","yellow","orange","lightseagreen","royalblue","#c51b8a")
+colSideGBS <- mycolGBS[my_group_GBS]
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBS, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+        legend(x="right",legend)
+        
+#for treatment
+my_group_GBStrx <- as.numeric(as.factor(substr(CST_GBSstudy_metadata$trx,1,1)))
+trxcol <- c("#ecebe2","#9fc3cc","#466566","#09496c")
+colSideGBStrx <- trxcol[my_group_GBStrx]
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStrx, col=colMainGBS,Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 
-#will use mapping (CST_CBmapping) and shortened df (OTU_1900_Combined_Other)
-#the all-encompassing code!!!!!!!!
-my_groupGBS <- as.numeric(as.factor(substr(CST_CBmapping$x,1,1)))
-colSideGBS <- brewer.pal(12, "Set3")[my_groupGBS]
-colMainGBS <- colorRampPalette(brewer.pal(8, "Reds"))(25)
-heatmap(OTU_clustCB_matrix, RowSideColors=colSideGBS, Rowv=NULL)
-#plot 2_ images all taxa, minus CST colum, but uses CST to order plot (already renamed by hand)
-clust_order <- c( 1,2,3,4,5,6)
-
-my_groupGBS2 <- as.numeric(as.factor(substr(CST_CBmapping_mult$CST_5,1,1)))
-colSideGBS2 <- brewer.pal(12, "Set3")[my_groupGBS2]
-heatmap(OTU_clustCB_matrix, RowSideColors=colSideGBS2, Colv= NA, Rowv= CST_CBmapping_mult$CST_5)
-heatmap(OTU_clustCB_matrix, RowSideColors=colSideGBS2, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D2"), Rowv= CST_CBmapping_mult$CST_4)
+#for timepoint
+my_group_GBStp <- as.numeric(as.factor(substr(CST_GBSstudy_metadata$timepoint,1,1)))
+tpcol <- c("#cc9595","#e3d4d7","#938b97","#617dbf","#152F50")
+colSideGBStp <- tpcol[my_group_GBStp]
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStp, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 
 
+#saving images
+tiff(file="Heatmap_GBS_CST_bupu.tif")
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBS, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+dev.off()
+tiff(file="Heatmap_GBS_trx_bupu.tif")
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStrx, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+dev.off()
+tiff(file="Heatmap_GBS_tp_bupu.tif")
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStp, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+dev.off()
 
-
+#image legend scale for body of heatmap
+image(1:nrow(OTU_clustGBS_matrix), 1, as.matrix(1:nrow(OTU_clustGBS_matrix)), 
+      col=colorRampPalette(brewer.pal(9, "BuPu"))(25),
+      xlab="", ylab = "", xaxt = "n", yaxt = "n", bty = "n")
