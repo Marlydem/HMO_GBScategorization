@@ -57,7 +57,7 @@ print(group5)
 write.csv(group5,"CST_BL_mapping.csv")
 #Manually add first column heading "Sample_id"
 #merge the two tables metadata and CST
-CST_BLmapping <- read.csv("CST_BL_mapping.csv.csv", header=TRUE, sep = ",", row.names="sample_name")
+CST_BLmapping <- read.csv("CST_BL_mapping.csv", header=TRUE, sep = ",", row.names="sample_name")
 CST_BLmetadata <- read.csv("CST_metadata_Baseline.csv", header=TRUE, sep = ",", row.names="sample_name")
 
 
