@@ -1,15 +1,10 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%% R studio %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   "Community State Types Baseline"
 #perform in R
-library(tidyverse)  # data manipulation
-library(cluster)    # clustering algorithms
 library(factoextra) # clustering visualization
-library(dendextend) # for comparing two dendrograms
-
-library(rbiom)
-library(vegan) #This is vegan 2.5-6
-library(phyloseq)
+library(phyloseq) #OTU table handling
 library(ggplot2)
+  #package stats is automatically loaded in R, used for kmeans, wss, and heatmapping
 
 setwd("~/Desktop")
 
@@ -95,7 +90,6 @@ OTU_BLre_ordername <- read.csv("exported/RelFreq_1900_Baseline/RelFreq_toptaxahe
   
 install.packages("RColorBrewer")
 library("RColorBrewer")
-library("grDevices")
 
 OTU_reno_clustBL_matrix <- as.matrix(OTU_BLre_ordername)
 heatmap(OTU_reno_clustBL_matrix) #sideways without CST categorization
@@ -113,15 +107,15 @@ colSide_BL <- mycol[my_group_BL]
 
 OTU_BL_top35ordername <- read.csv("exported/RelFreq_1900_Baseline/RelFreq_top35taxahead_Baseline.csv", header=TRUE, sep = ",", row.names="sample_name")
 OTU_BL_top35matrix <- as.matrix(OTU_BL_top35ordername)
-heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_BL_top35matrix, scale= "none", cexCol = 0.8, RowSideColors=colSide_BL, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 
 
 #saving files. preferred to save PDF and export as png 1500 pixels per inche
 tiff(file="Heatmap_Baseline_BuPu.tif")
-heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL,  col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_BL_top35matrix, cexCol = 0.8, scale= "none", RowSideColors=colSide_BL,  col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 dev.off()
 png(file="Heatmap_Baseline_BuPu.png")
-heatmap(OTU_BL_top35matrix, cexCol = 0.8, RowSideColors=colSide_BL,  col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_BL_top35matrix, cexCol = 0.8, scale= "none", RowSideColors=colSide_BL,  col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 dev.off()
 
 %%%%%%%%%%%%%%% on GBS dataset %%%%%%%%%%%%%%%
@@ -202,31 +196,31 @@ OTU_clustGBS_matrix <- as.matrix(OTU_GBSre_ordername)
 my_group_GBS <- as.numeric(as.factor(substr(CST_GBSstudy_mapping$x,1,1)))
 mycolGBS <- c("tomato","yellow","orange","lightseagreen","royalblue","#c51b8a")
 colSideGBS <- mycolGBS[my_group_GBS]
-heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBS, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, scale= "none", RowSideColors=colSideGBS, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
         legend(x="right",legend)
         
 #for treatment
 my_group_GBStrx <- as.numeric(as.factor(substr(CST_GBSstudy_metadata$trx,1,1)))
 trxcol <- c("#ecebe2","#9fc3cc","#466566","#09496c")
 colSideGBStrx <- trxcol[my_group_GBStrx]
-heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStrx, col=colMainGBS,Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, scale= "none", RowSideColors=colSideGBStrx, col=colMainGBS,Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 
 #for timepoint
 my_group_GBStp <- as.numeric(as.factor(substr(CST_GBSstudy_metadata$timepoint,1,1)))
 tpcol <- c("#cc9595","#e3d4d7","#938b97","#617dbf","#152F50")
 colSideGBStp <- tpcol[my_group_GBStp]
-heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStp, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, scale= "none", RowSideColors=colSideGBStp, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 
 
 #saving images
 tiff(file="Heatmap_GBS_CST_bupu.tif")
-heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBS, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, scale= "none", RowSideColors=colSideGBS, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 dev.off()
 tiff(file="Heatmap_GBS_trx_bupu.tif")
-heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStrx, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, scale= "none", RowSideColors=colSideGBStrx, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 dev.off()
 tiff(file="Heatmap_GBS_tp_bupu.tif")
-heatmap(OTU_clustGBS_matrix, cexCol = 0.8, RowSideColors=colSideGBStp, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
+heatmap(OTU_clustGBS_matrix, cexCol = 0.8, scale= "none", RowSideColors=colSideGBStp, col=colMainGBS, Colv= NA, distfun = function(x) dist(x, method="euclidean"), hclustfun = function(x) hclust(x, method="ward.D"))
 dev.off()
 
 #image legend scale for body of heatmap
